@@ -19,7 +19,6 @@ QString ImuJointWidget::formatDouble(double value)
 ImuJointWidget::ImuJointWidget(QWidget *parent)
   : QWidget(parent)
 {
-  setFocusPolicy(Qt::StrongFocus);
   setStyleSheet(
     "QWidget { font-family: 'Noto Sans'; font-size: 15px; }"
     "QGroupBox { font-weight: 600; border: 1px solid #c9c9c9; border-radius: 6px; margin-top: 14px; }"
@@ -44,7 +43,8 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   graphs_stack->setSpacing(12);
 
   auto add_plot = [&](QGridLayout *layout, const QString &name,
-                      std::function<double(const TitaState &)> getter)
+                      std::function<double(const TitaState &)> getter,
+                      int columns)
   {
     auto *cell = new QWidget(scroll_widget);
     auto *cell_layout = new QVBoxLayout(cell);
@@ -59,9 +59,8 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
     cell_layout->addWidget(plot);
 
     const int index = layout->count();
-    const int cols = 2;
-    const int row = index / cols;
-    const int col = index % cols;
+    const int row = index / columns;
+    const int col = index % columns;
     layout->addWidget(cell, row, col);
 
     plots_.push_back({name, plot, std::move(getter)});
@@ -71,27 +70,35 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   auto *imu_layout = new QGridLayout(imu_group);
   imu_layout->setHorizontalSpacing(12);
   imu_layout->setVerticalSpacing(12);
-  add_plot(imu_layout, "roll", [](const TitaState &s) { return s.roll; });
-  add_plot(imu_layout, "pitch", [](const TitaState &s) { return s.pitch; });
-  add_plot(imu_layout, "yaw", [](const TitaState &s) { return s.yaw; });
+  add_plot(imu_layout, "roll", [](const TitaState &s) { return s.roll; }, 3);
+  add_plot(imu_layout, "pitch", [](const TitaState &s) { return s.pitch; }, 3);
+  add_plot(imu_layout, "yaw", [](const TitaState &s) { return s.yaw; }, 3);
 
   auto *j1_group = new QGroupBox("Joint 1", scroll_widget);
   auto *j1_layout = new QGridLayout(j1_group);
   j1_layout->setHorizontalSpacing(12);
   j1_layout->setVerticalSpacing(12);
-  add_plot(j1_layout, "Left.J1", [](const TitaState &s) { return s.Left.Pos.joint1; });
-  add_plot(j1_layout, "Right.J1", [](const TitaState &s) { return s.Right.Pos.joint1; });
+  add_plot(j1_layout, "Left.J1", [](const TitaState &s) { return s.Left.Pos.joint1; }, 2);
+  add_plot(j1_layout, "Right.J1", [](const TitaState &s) { return s.Right.Pos.joint1; }, 2);
 
   auto *j2_group = new QGroupBox("Joint 2", scroll_widget);
   auto *j2_layout = new QGridLayout(j2_group);
   j2_layout->setHorizontalSpacing(12);
   j2_layout->setVerticalSpacing(12);
-  add_plot(j2_layout, "Left.J2", [](const TitaState &s) { return s.Left.Pos.joint2; });
-  add_plot(j2_layout, "Right.J2", [](const TitaState &s) { return s.Right.Pos.joint2; });
+  add_plot(j2_layout, "Left.J2", [](const TitaState &s) { return s.Left.Pos.joint2; }, 2);
+  add_plot(j2_layout, "Right.J2", [](const TitaState &s) { return s.Right.Pos.joint2; }, 2);
+
+  auto *j3_group = new QGroupBox("Joint 3", scroll_widget);
+  auto *j3_layout = new QGridLayout(j3_group);
+  j3_layout->setHorizontalSpacing(12);
+  j3_layout->setVerticalSpacing(12);
+  add_plot(j3_layout, "Left.J3", [](const TitaState &s) { return s.Left.Pos.joint3; }, 2);
+  add_plot(j3_layout, "Right.J3", [](const TitaState &s) { return s.Right.Pos.joint3; }, 2);
 
   graphs_stack->addWidget(imu_group);
   graphs_stack->addWidget(j1_group);
   graphs_stack->addWidget(j2_group);
+  graphs_stack->addWidget(j3_group);
   graphs_stack->addStretch(1);
 
   scroll_widget->setLayout(graphs_stack);
