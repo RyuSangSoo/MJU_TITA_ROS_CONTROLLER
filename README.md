@@ -1,51 +1,51 @@
 # Tita UI
 
-ROS2 Qt UI for monitoring TiTa IMU and joint states with live plots.
+ROS2 환경에서 TiTa IMU와 Joint State를 모니터링하는 Qt 기반 UI입니다.
 
-## Features
-- Subscribes to IMU and JointState topics
-- Computes roll/pitch/yaw from IMU orientation
-- Stores all values in `TitaState`
-- Graphs for IMU (roll/pitch/yaw) and joint 1/2/3 positions (Left/Right)
-- Tita State table for Left/Right (Pos/Vel/Eff) + RPY values
-- ESC to close the window
+## 기능
+- IMU 및 JointState 토픽 구독
+- IMU orientation에서 roll/pitch/yaw 계산
+- 모든 값을 `TitaState`에 저장
+- IMU(roll/pitch/yaw), Joint 1/2/3(Left/Right) 그래프 표시
+- Left/Right (Pos/Vel/Eff) + RPY 테이블 표시
+- ESC 키로 창 종료
 
-## Dependencies
-Qt5 is required. On Ubuntu:
+## 의존성
+Qt5가 필요합니다. Ubuntu 기준:
 ```bash
 sudo apt-get update
 sudo apt-get install -y qtbase5-dev
 ```
 
-## Topics
-Defaults:
+## 토픽
+기본값:
 - IMU: `/imu_sensor_broadcaster/imu`
 - Joint States: `/joint_states`
 
-You can override with parameters:
+파라미터로 변경 가능:
 - `imu_topic`
 - `joint_states_topic`
 
-## Build
+## 빌드
 ```bash
 colcon build --packages-select tita_ui
 ```
 
-## Run
+## 실행
 ```bash
 source install/setup.bash
 ros2 run tita_ui tita_ui_node
 ```
 
-### Run with custom topics
+### 토픽 변경 실행
 ```bash
 ros2 run tita_ui tita_ui_node --ros-args \
   -p imu_topic:=/imu_sensor_broadcaster/imu \
   -p joint_states_topic:=/joint_states
 ```
 
-## Joint Mapping
-The following joint names are mapped to `TitaState`:
+## 조인트 매핑
+다음 이름들이 `TitaState`에 매핑됩니다:
 - `joint_left_leg_1` -> Left.J1
 - `joint_left_leg_2` -> Left.J2
 - `joint_left_leg_3` -> Left.J3
@@ -55,6 +55,6 @@ The following joint names are mapped to `TitaState`:
 - `joint_right_leg_3` -> Right.J3
 - `joint_right_leg_4` -> Right.Wheel
 
-## Notes
-- UI refresh is throttled to ~30Hz for smooth rendering.
-- Default window mode is maximized (not fullscreen).
+## 참고
+- UI 업데이트는 약 30Hz로 제한되어 부드럽게 표시됩니다.
+- 기본 창 모드는 최대화(Fullscreen 아님)입니다.
