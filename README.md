@@ -9,6 +9,7 @@ ROS2 환경에서 TiTa IMU와 Joint State를 모니터링하는 Qt 기반 UI입�
 - IMU(roll/pitch/yaw), Joint 1/2/3(Left/Right) 그래프 표시
 - Left/Right (Pos/Vel/Eff) + RPY 테이블 표시
 - ESC 키로 창 종료
+- CSV 로깅 (세미콜론 `;` 구분자)
 
 ## 의존성
 Qt5가 필요합니다. Ubuntu 기준:
@@ -43,6 +44,13 @@ ros2 run tita_ui tita_ui_node --ros-args \
   -p imu_topic:=/imu_sensor_broadcaster/imu \
   -p joint_states_topic:=/joint_states
 ```
+
+## 로깅
+- `R` 키 또는 **Start Logging** 버튼으로 시작/중지 토글
+- `;`(세미콜론) 구분 CSV
+- 기본 저장 위치: 실행 경로의 `data/`
+- 쓰기 불가 시: `~/tita_logs/`로 자동 저장
+- UI에 실제 저장 경로 표시
 
 ## 조인트 매핑
 다음 이름들이 `TitaState`에 매핑됩니다:

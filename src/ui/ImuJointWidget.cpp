@@ -111,6 +111,9 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   tita_roll_ = new QLabel("roll: -", tita_group);
   tita_pitch_ = new QLabel("pitch: -", tita_group);
   tita_yaw_ = new QLabel("yaw: -", tita_group);
+  log_button_ = new QPushButton("Start Logging (R)", tita_group);
+  connect(log_button_, &QPushButton::clicked, this, &ImuJointWidget::toggleLogging);
+  log_status_ = new QLabel("log: idle", tita_group);
 
   tita_left_table_ = new QTableWidget(3, 4, tita_group);
   tita_left_table_->setHorizontalHeaderLabels({"J1", "J2", "J3", "Wheel"});
@@ -129,6 +132,8 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   tita_layout->addWidget(tita_roll_);
   tita_layout->addWidget(tita_pitch_);
   tita_layout->addWidget(tita_yaw_);
+  tita_layout->addWidget(log_button_);
+  tita_layout->addWidget(log_status_);
   tita_layout->addWidget(new QLabel("Left", tita_group));
   tita_layout->addWidget(tita_left_table_);
   tita_layout->addWidget(new QLabel("Right", tita_group));
@@ -150,6 +155,11 @@ void ImuJointWidget::keyPressEvent(QKeyEvent *event)
   if (event->key() == Qt::Key_Escape)
   {
     close();
+    return;
+  }
+  if (event->key() == Qt::Key_R)
+  {
+    toggleLogging();
     return;
   }
 
@@ -217,4 +227,125 @@ void ImuJointWidget::refreshUi()
   {
     binding.plot->appendSample(t, binding.getter(state));
   }
+}
+
+void ImuJointWidget::toggleLogging()
+{
+  if (!logging_enabled_)
+  {
+    QDir base_dir(QDir::currentPath());
+    if (!base_dir.exists("data"))
+    {
+      base_dir.mkpath("data");
+    }
+    QDir data_dir = QDir(base_dir.filePath("data"));
+
+    if (!data_dir.exists() || !data_dir.isReadable() || !QFileInfo(data_dir.absolutePath()).isWritable())
+    {
+      const QString home = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+      base_dir = QDir(home);
+      base_dir.mkpath("tita_logs");
+      data_dir = QDir(base_dir.filePath("tita_logs"));
+    }
+
+    const QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+    const QString file_path = data_dir.filePath(QString("tita_%1.csv").arg(timestamp));
+
+    log_file_.setFileName(file_path);
+    if (!log_file_.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+      if (log_status_)
+      {
+        log_status_->setText(QString("log: failed (%1)").arg(file_path));
+      }
+      return;
+    }
+
+    log_stream_.setDevice(&log_file_);
+    log_stream_ << "time_sec;roll;pitch;yaw;"
+                << "left_pos_j1;left_pos_j2;left_pos_j3;left_pos_wheel;"
+                << "left_vel_j1;left_vel_j2;left_vel_j3;left_vel_wheel;"
+                << "left_eff_j1;left_eff_j2;left_eff_j3;left_eff_wheel;"
+                << "right_pos_j1;right_pos_j2;right_pos_j3;right_pos_wheel;"
+                << "right_vel_j1;right_vel_j2;right_vel_j3;right_vel_wheel;"
+                << "right_eff_j1;right_eff_j2;right_eff_j3;right_eff_wheel\n";
+
+    logging_enabled_ = true;
+    if (log_button_)
+    {
+      log_button_->setText("Stop Logging (R)");
+    }
+    if (log_status_)
+    {
+      log_status_->setText(QString("log: %1").arg(file_path));
+    }
+
+    if (!log_timer_)
+    {
+      log_timer_ = new QTimer(this);
+      log_timer_->setInterval(100);
+      connect(log_timer_, &QTimer::timeout, this, &ImuJointWidget::logSample);
+    }
+    log_timer_->start();
+    return;
+  }
+
+  logging_enabled_ = false;
+  if (log_button_)
+  {
+    log_button_->setText("Start Logging (R)");
+  }
+  if (log_status_)
+  {
+    log_status_->setText("log: idle");
+  }
+  if (log_timer_)
+  {
+    log_timer_->stop();
+  }
+  if (log_file_.isOpen())
+  {
+    log_file_.close();
+  }
+}
+
+void ImuJointWidget::logSample()
+{
+  if (!logging_enabled_ || !has_state_ || !log_file_.isOpen())
+  {
+    return;
+  }
+
+  const TitaState &s = latest_state_;
+  const double t = timer_.elapsed() / 1000.0;
+
+  log_stream_ << QString::number(t, 'f', 6) << ';'
+              << QString::number(s.roll, 'f', 6) << ';'
+              << QString::number(s.pitch, 'f', 6) << ';'
+              << QString::number(s.yaw, 'f', 6) << ';'
+              << QString::number(s.Left.Pos.joint1, 'f', 6) << ';'
+              << QString::number(s.Left.Pos.joint2, 'f', 6) << ';'
+              << QString::number(s.Left.Pos.joint3, 'f', 6) << ';'
+              << QString::number(s.Left.Pos.Wheel, 'f', 6) << ';'
+              << QString::number(s.Left.Vel.joint1, 'f', 6) << ';'
+              << QString::number(s.Left.Vel.joint2, 'f', 6) << ';'
+              << QString::number(s.Left.Vel.joint3, 'f', 6) << ';'
+              << QString::number(s.Left.Vel.Wheel, 'f', 6) << ';'
+              << QString::number(s.Left.Effort.joint1, 'f', 6) << ';'
+              << QString::number(s.Left.Effort.joint2, 'f', 6) << ';'
+              << QString::number(s.Left.Effort.joint3, 'f', 6) << ';'
+              << QString::number(s.Left.Effort.Wheel, 'f', 6) << ';'
+              << QString::number(s.Right.Pos.joint1, 'f', 6) << ';'
+              << QString::number(s.Right.Pos.joint2, 'f', 6) << ';'
+              << QString::number(s.Right.Pos.joint3, 'f', 6) << ';'
+              << QString::number(s.Right.Pos.Wheel, 'f', 6) << ';'
+              << QString::number(s.Right.Vel.joint1, 'f', 6) << ';'
+              << QString::number(s.Right.Vel.joint2, 'f', 6) << ';'
+              << QString::number(s.Right.Vel.joint3, 'f', 6) << ';'
+              << QString::number(s.Right.Vel.Wheel, 'f', 6) << ';'
+              << QString::number(s.Right.Effort.joint1, 'f', 6) << ';'
+              << QString::number(s.Right.Effort.joint2, 'f', 6) << ';'
+              << QString::number(s.Right.Effort.joint3, 'f', 6) << ';'
+              << QString::number(s.Right.Effort.Wheel, 'f', 6) << '\n';
+  log_stream_.flush();
 }

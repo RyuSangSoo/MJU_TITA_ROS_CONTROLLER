@@ -3,12 +3,19 @@
 #include <functional>
 #include <vector>
 
+#include <QDateTime>
+#include <QDir>
 #include <QElapsedTimer>
+#include <QFile>
+#include <QPushButton>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QString>
 #include <QKeyEvent>
+#include <QFileInfo>
 #include <QTableWidget>
 #include <QWidget>
+#include <QTextStream>
 
 #include "tita_ui/TitaState.hpp"
 
@@ -30,10 +37,14 @@ protected:
 
 private:
   void refreshUi();
+  void toggleLogging();
+  void logSample();
 
   QLabel *tita_roll_{nullptr};
   QLabel *tita_pitch_{nullptr};
   QLabel *tita_yaw_{nullptr};
+  QPushButton *log_button_{nullptr};
+  QLabel *log_status_{nullptr};
 
   QTableWidget *tita_left_table_{nullptr};
   QTableWidget *tita_right_table_{nullptr};
@@ -53,4 +64,9 @@ private:
   QTimer *refresh_timer_{nullptr};
   TitaState latest_state_{};
   bool has_state_{false};
+
+  QTimer *log_timer_{nullptr};
+  QFile log_file_;
+  QTextStream log_stream_;
+  bool logging_enabled_{false};
 };
