@@ -4,6 +4,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include "tita_ui/ros/ControlPublisher.hpp"
 #include "tita_ui/ros/ImuJointSubscriber.hpp"
 #include "tita_ui/ui/ImuJointWidget.hpp"
 #include "tita_ui/TitaState.hpp"
@@ -20,15 +21,18 @@ int main(int argc, char **argv)
   auto node = std::make_shared<rclcpp::Node>("tita_ui");
   node->declare_parameter<std::string>("imu_topic", "/imu_sensor_broadcaster/imu");
   node->declare_parameter<std::string>("joint_states_topic", "/joint_states");
+  node->declare_parameter<std::string>("control_topic", "/R_effort_controller/commands");
 
   const std::string imu_topic = node->get_parameter("imu_topic").as_string();
   const std::string joint_topic = node->get_parameter("joint_states_topic").as_string();
+  const std::string control_topic = node->get_parameter("control_topic").as_string();
 
   ImuJointWidget widget;
   widget.setWindowTitle("Tita IMU & Joint States");
   widget.resize(900, 700);
 
   ImuJointSubscriber subscriber(node, imu_topic, joint_topic);
+  ControlPublisher control_publisher(node, control_topic);
   QObject::connect(&subscriber, &ImuJointSubscriber::titaStateUpdated,
                    &widget, &ImuJointWidget::onTitaStateUpdated, Qt::QueuedConnection);
 

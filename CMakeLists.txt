@@ -19,6 +19,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -41,10 +42,12 @@ set(CMAKE_AUTORCC ON)
 
 add_executable(tita_ui_node
   src/main.cpp
+  src/ros/ControlPublisher.cpp
   src/ros/ImuJointSubscriber.cpp
   src/ros/TitaState.cpp
   src/ui/ImuJointWidget.cpp
   src/ui/SignalPlotWidget.cpp
+  include/tita_ui/ros/ControlPublisher.hpp
   include/tita_ui/ros/ImuJointSubscriber.hpp
   include/tita_ui/ui/ImuJointWidget.hpp
   include/tita_ui/ui/SignalPlotWidget.hpp
@@ -54,6 +57,7 @@ add_executable(tita_ui_node
 ament_target_dependencies(tita_ui_node
   rclcpp
   sensor_msgs
+  std_msgs
 )
 
 target_link_libraries(tita_ui_node

@@ -2,6 +2,7 @@
 
 #include <QAbstractItemView>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QGroupBox>
 #include <QHeaderView>
 #include <QLabel>
@@ -10,6 +11,8 @@
 #include <QVBoxLayout>
 
 #include "tita_ui/ui/SignalPlotWidget.hpp"
+
+#include <mutex>
 
 QString ImuJointWidget::formatDouble(double value)
 {
@@ -43,7 +46,8 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   graphs_stack->setSpacing(12);
 
   auto add_plot = [&](QGridLayout *layout, const QString &name,
-                      std::function<double(const TitaState &)> getter,
+                      std::function<double(const TitaState &)> getter_primary,
+                      std::function<double(const TitaState &)> getter_secondary,
                       int columns)
   {
     auto *cell = new QWidget(scroll_widget);
@@ -54,6 +58,8 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
     auto *label = new QLabel(name, cell);
     auto *plot = new SignalPlotWidget(cell);
     plot->setTimeWindow(10.0);
+    plot->setSeriesColor(0, QColor(60, 120, 200));
+    plot->setSeriesColor(1, QColor(220, 90, 80));
 
     cell_layout->addWidget(label);
     cell_layout->addWidget(plot);
@@ -63,37 +69,44 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
     const int col = index % columns;
     layout->addWidget(cell, row, col);
 
-    plots_.push_back({name, plot, std::move(getter)});
+    plots_.push_back({name, plot, std::move(getter_primary), std::move(getter_secondary)});
   };
 
   auto *imu_group = new QGroupBox("Imu", scroll_widget);
   auto *imu_layout = new QGridLayout(imu_group);
   imu_layout->setHorizontalSpacing(12);
   imu_layout->setVerticalSpacing(12);
-  add_plot(imu_layout, "roll", [](const TitaState &s) { return s.roll; }, 3);
-  add_plot(imu_layout, "pitch", [](const TitaState &s) { return s.pitch; }, 3);
-  add_plot(imu_layout, "yaw", [](const TitaState &s) { return s.yaw; }, 3);
+  auto rad_to_deg = [](double rad) { return rad * (180.0 / 3.14159265358979323846); };
+  add_plot(imu_layout, "roll (deg)", [=](const TitaState &s) { return rad_to_deg(s.roll); }, {}, 3);
+  add_plot(imu_layout, "pitch (deg)", [=](const TitaState &s) { return rad_to_deg(s.pitch); }, {}, 3);
+  add_plot(imu_layout, "yaw (deg)", [=](const TitaState &s) { return rad_to_deg(s.yaw); }, {}, 3);
 
   auto *j1_group = new QGroupBox("Joint 1", scroll_widget);
   auto *j1_layout = new QGridLayout(j1_group);
   j1_layout->setHorizontalSpacing(12);
   j1_layout->setVerticalSpacing(12);
-  add_plot(j1_layout, "Left.J1", [](const TitaState &s) { return s.Left.Pos.joint1; }, 2);
-  add_plot(j1_layout, "Right.J1", [](const TitaState &s) { return s.Right.Pos.joint1; }, 2);
+  add_plot(j1_layout, "Left.J1", [](const TitaState &s) { return s.Left.Real.Pos.joint1; },
+           [](const TitaState &s) { return s.Left.Command.Pos.joint1; }, 2);
+  add_plot(j1_layout, "Right.J1", [](const TitaState &s) { return s.Right.Real.Pos.joint1; },
+           [](const TitaState &s) { return s.Right.Command.Pos.joint1; }, 2);
 
   auto *j2_group = new QGroupBox("Joint 2", scroll_widget);
   auto *j2_layout = new QGridLayout(j2_group);
   j2_layout->setHorizontalSpacing(12);
   j2_layout->setVerticalSpacing(12);
-  add_plot(j2_layout, "Left.J2", [](const TitaState &s) { return s.Left.Pos.joint2; }, 2);
-  add_plot(j2_layout, "Right.J2", [](const TitaState &s) { return s.Right.Pos.joint2; }, 2);
+  add_plot(j2_layout, "Left.J2", [](const TitaState &s) { return s.Left.Real.Pos.joint2; },
+           [](const TitaState &s) { return s.Left.Command.Pos.joint2; }, 2);
+  add_plot(j2_layout, "Right.J2", [](const TitaState &s) { return s.Right.Real.Pos.joint2; },
+           [](const TitaState &s) { return s.Right.Command.Pos.joint2; }, 2);
 
   auto *j3_group = new QGroupBox("Joint 3", scroll_widget);
   auto *j3_layout = new QGridLayout(j3_group);
   j3_layout->setHorizontalSpacing(12);
   j3_layout->setVerticalSpacing(12);
-  add_plot(j3_layout, "Left.J3", [](const TitaState &s) { return s.Left.Pos.joint3; }, 2);
-  add_plot(j3_layout, "Right.J3", [](const TitaState &s) { return s.Right.Pos.joint3; }, 2);
+  add_plot(j3_layout, "Left.J3", [](const TitaState &s) { return s.Left.Real.Pos.joint3; },
+           [](const TitaState &s) { return s.Left.Command.Pos.joint3; }, 2);
+  add_plot(j3_layout, "Right.J3", [](const TitaState &s) { return s.Right.Real.Pos.joint3; },
+           [](const TitaState &s) { return s.Right.Command.Pos.joint3; }, 2);
 
   graphs_stack->addWidget(imu_group);
   graphs_stack->addWidget(j1_group);
@@ -105,7 +118,12 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   scroll->setWidget(scroll_widget);
   graphs_layout->addWidget(scroll);
 
-  auto *tita_group = new QGroupBox("Tita State", this);
+  auto *bottom_row = new QWidget(this);
+  auto *bottom_layout = new QHBoxLayout(bottom_row);
+  bottom_layout->setContentsMargins(0, 0, 0, 0);
+  bottom_layout->setSpacing(12);
+
+  auto *tita_group = new QGroupBox("Tita State", bottom_row);
   auto *tita_layout = new QVBoxLayout(tita_group);
 
   tita_roll_ = new QLabel("roll: -", tita_group);
@@ -139,8 +157,92 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   tita_layout->addWidget(new QLabel("Right", tita_group));
   tita_layout->addWidget(tita_right_table_);
 
+  auto *control_group = new QGroupBox("Control (Right Effort PD)", bottom_row);
+  auto *control_layout = new QVBoxLayout(control_group);
+  control_layout->setSpacing(10);
+
+  auto make_spin = [&](const QString &label, double min, double max, double step, int decimals)
+  {
+    auto *row = new QWidget(control_group);
+    auto *row_layout = new QHBoxLayout(row);
+    row_layout->setContentsMargins(0, 0, 0, 0);
+    row_layout->setSpacing(8);
+    auto *name = new QLabel(label, row);
+    auto *spin = new QDoubleSpinBox(row);
+    spin->setRange(min, max);
+    spin->setDecimals(decimals);
+    spin->setSingleStep(step);
+    spin->setMinimumWidth(140);
+    row_layout->addWidget(name);
+    row_layout->addWidget(spin, 1);
+    control_layout->addWidget(row);
+    return spin;
+  };
+
+  target_j1_ = make_spin("Target J1 (rad)", -6.283, 6.283, 0.01, 4);
+  target_j2_ = make_spin("Target J2 (rad)", -6.283, 6.283, 0.01, 4);
+  target_j3_ = make_spin("Target J3 (rad)", -6.283, 6.283, 0.01, 4);
+  duration_sec_ = make_spin("Move Time (s)", 0.01, 30.0, 0.1, 2);
+  kp_j1_ = make_spin("Kp J1", 0.0, 1000.0, 0.1, 3);
+  kp_j2_ = make_spin("Kp J2", 0.0, 1000.0, 0.1, 3);
+  kp_j3_ = make_spin("Kp J3", 0.0, 1000.0, 0.1, 3);
+  kd_j1_ = make_spin("Kd J1", 0.0, 1000.0, 0.1, 3);
+  kd_j2_ = make_spin("Kd J2", 0.0, 1000.0, 0.1, 3);
+  kd_j3_ = make_spin("Kd J3", 0.0, 1000.0, 0.1, 3);
+  duration_sec_->setValue(2.0);
+  kp_j1_->setValue(10.0);
+  kp_j2_->setValue(10.0);
+  kp_j3_->setValue(10.0);
+  kd_j1_->setValue(0.5);
+  kd_j2_->setValue(0.5);
+  kd_j3_->setValue(0.5);
+
+  send_button_ = new QPushButton("Send", control_group);
+  stop_button_ = new QPushButton("Stop", control_group);
+  control_layout->addWidget(send_button_);
+  control_layout->addWidget(stop_button_);
+  control_layout->addStretch(1);
+
+  connect(send_button_, &QPushButton::clicked, this, [=]()
+  {
+    std::lock_guard<std::mutex> lock(tita_state_mutex);
+    tita_state.Control.target_j1 = target_j1_->value();
+    tita_state.Control.target_j2 = target_j2_->value();
+    tita_state.Control.target_j3 = target_j3_->value();
+    tita_state.Control.duration_sec = duration_sec_->value();
+    tita_state.Control.kp_j1 = kp_j1_->value();
+    tita_state.Control.kp_j2 = kp_j2_->value();
+    tita_state.Control.kp_j3 = kp_j3_->value();
+    tita_state.Control.kd_j1 = kd_j1_->value();
+    tita_state.Control.kd_j2 = kd_j2_->value();
+    tita_state.Control.kd_j3 = kd_j3_->value();
+    tita_state.Control.seq += 1;
+  });
+  connect(send_button_, &QPushButton::clicked, this, [=]()
+  {
+    for (auto &binding : plots_)
+    {
+      if (binding.getter_secondary)
+      {
+        binding.plot->clearSeries(1);
+      }
+    }
+  });
+
+  connect(stop_button_, &QPushButton::clicked, this, [=]()
+  {
+    std::lock_guard<std::mutex> lock(tita_state_mutex);
+    tita_state.Right.Command.Effort.joint1 = 0.0;
+    tita_state.Right.Command.Effort.joint2 = 0.0;
+    tita_state.Right.Command.Effort.joint3 = 0.0;
+    tita_state.Control.stop_seq += 1;
+  });
+
+  bottom_layout->addWidget(tita_group, 1);
+  bottom_layout->addWidget(control_group, 1);
+
   root_layout->addWidget(graphs_group, 2);
-  root_layout->addWidget(tita_group, 1);
+  root_layout->addWidget(bottom_row, 1);
 
   timer_.start();
 
@@ -181,9 +283,12 @@ void ImuJointWidget::refreshUi()
 
   const TitaState &state = latest_state_;
 
-  tita_roll_->setText(QString("roll: %1").arg(formatDouble(state.roll)));
-  tita_pitch_->setText(QString("pitch: %1").arg(formatDouble(state.pitch)));
-  tita_yaw_->setText(QString("yaw: %1").arg(formatDouble(state.yaw)));
+  const double roll_deg = state.roll * (180.0 / 3.14159265358979323846);
+  const double pitch_deg = state.pitch * (180.0 / 3.14159265358979323846);
+  const double yaw_deg = state.yaw * (180.0 / 3.14159265358979323846);
+  tita_roll_->setText(QString("roll: %1 deg").arg(formatDouble(roll_deg)));
+  tita_pitch_->setText(QString("pitch: %1 deg").arg(formatDouble(pitch_deg)));
+  tita_yaw_->setText(QString("yaw: %1 deg").arg(formatDouble(yaw_deg)));
 
   auto set_cell = [](QTableWidget *table, int row, int col, double value)
   {
@@ -196,36 +301,43 @@ void ImuJointWidget::refreshUi()
     item->setText(QString::number(value, 'f', 6));
   };
 
-  set_cell(tita_left_table_, 0, 0, state.Left.Pos.joint1);
-  set_cell(tita_left_table_, 0, 1, state.Left.Pos.joint2);
-  set_cell(tita_left_table_, 0, 2, state.Left.Pos.joint3);
-  set_cell(tita_left_table_, 0, 3, state.Left.Pos.Wheel);
-  set_cell(tita_left_table_, 1, 0, state.Left.Vel.joint1);
-  set_cell(tita_left_table_, 1, 1, state.Left.Vel.joint2);
-  set_cell(tita_left_table_, 1, 2, state.Left.Vel.joint3);
-  set_cell(tita_left_table_, 1, 3, state.Left.Vel.Wheel);
-  set_cell(tita_left_table_, 2, 0, state.Left.Effort.joint1);
-  set_cell(tita_left_table_, 2, 1, state.Left.Effort.joint2);
-  set_cell(tita_left_table_, 2, 2, state.Left.Effort.joint3);
-  set_cell(tita_left_table_, 2, 3, state.Left.Effort.Wheel);
+  set_cell(tita_left_table_, 0, 0, state.Left.Real.Pos.joint1);
+  set_cell(tita_left_table_, 0, 1, state.Left.Real.Pos.joint2);
+  set_cell(tita_left_table_, 0, 2, state.Left.Real.Pos.joint3);
+  set_cell(tita_left_table_, 0, 3, state.Left.Real.Pos.Wheel);
+  set_cell(tita_left_table_, 1, 0, state.Left.Real.Vel.joint1);
+  set_cell(tita_left_table_, 1, 1, state.Left.Real.Vel.joint2);
+  set_cell(tita_left_table_, 1, 2, state.Left.Real.Vel.joint3);
+  set_cell(tita_left_table_, 1, 3, state.Left.Real.Vel.Wheel);
+  set_cell(tita_left_table_, 2, 0, state.Left.Real.Effort.joint1);
+  set_cell(tita_left_table_, 2, 1, state.Left.Real.Effort.joint2);
+  set_cell(tita_left_table_, 2, 2, state.Left.Real.Effort.joint3);
+  set_cell(tita_left_table_, 2, 3, state.Left.Real.Effort.Wheel);
 
-  set_cell(tita_right_table_, 0, 0, state.Right.Pos.joint1);
-  set_cell(tita_right_table_, 0, 1, state.Right.Pos.joint2);
-  set_cell(tita_right_table_, 0, 2, state.Right.Pos.joint3);
-  set_cell(tita_right_table_, 0, 3, state.Right.Pos.Wheel);
-  set_cell(tita_right_table_, 1, 0, state.Right.Vel.joint1);
-  set_cell(tita_right_table_, 1, 1, state.Right.Vel.joint2);
-  set_cell(tita_right_table_, 1, 2, state.Right.Vel.joint3);
-  set_cell(tita_right_table_, 1, 3, state.Right.Vel.Wheel);
-  set_cell(tita_right_table_, 2, 0, state.Right.Effort.joint1);
-  set_cell(tita_right_table_, 2, 1, state.Right.Effort.joint2);
-  set_cell(tita_right_table_, 2, 2, state.Right.Effort.joint3);
-  set_cell(tita_right_table_, 2, 3, state.Right.Effort.Wheel);
+  set_cell(tita_right_table_, 0, 0, state.Right.Real.Pos.joint1);
+  set_cell(tita_right_table_, 0, 1, state.Right.Real.Pos.joint2);
+  set_cell(tita_right_table_, 0, 2, state.Right.Real.Pos.joint3);
+  set_cell(tita_right_table_, 0, 3, state.Right.Real.Pos.Wheel);
+  set_cell(tita_right_table_, 1, 0, state.Right.Real.Vel.joint1);
+  set_cell(tita_right_table_, 1, 1, state.Right.Real.Vel.joint2);
+  set_cell(tita_right_table_, 1, 2, state.Right.Real.Vel.joint3);
+  set_cell(tita_right_table_, 1, 3, state.Right.Real.Vel.Wheel);
+  set_cell(tita_right_table_, 2, 0, state.Right.Real.Effort.joint1);
+  set_cell(tita_right_table_, 2, 1, state.Right.Real.Effort.joint2);
+  set_cell(tita_right_table_, 2, 2, state.Right.Real.Effort.joint3);
+  set_cell(tita_right_table_, 2, 3, state.Right.Real.Effort.Wheel);
 
   const double t = timer_.elapsed() / 1000.0;
   for (auto &binding : plots_)
   {
-    binding.plot->appendSample(t, binding.getter(state));
+    if (binding.getter_primary)
+    {
+      binding.plot->appendSample(0, t, binding.getter_primary(state));
+    }
+    if (binding.getter_secondary)
+    {
+      binding.plot->appendSample(1, t, binding.getter_secondary(state));
+    }
   }
 }
 
@@ -323,29 +435,29 @@ void ImuJointWidget::logSample()
               << QString::number(s.roll, 'f', 6) << ';'
               << QString::number(s.pitch, 'f', 6) << ';'
               << QString::number(s.yaw, 'f', 6) << ';'
-              << QString::number(s.Left.Pos.joint1, 'f', 6) << ';'
-              << QString::number(s.Left.Pos.joint2, 'f', 6) << ';'
-              << QString::number(s.Left.Pos.joint3, 'f', 6) << ';'
-              << QString::number(s.Left.Pos.Wheel, 'f', 6) << ';'
-              << QString::number(s.Left.Vel.joint1, 'f', 6) << ';'
-              << QString::number(s.Left.Vel.joint2, 'f', 6) << ';'
-              << QString::number(s.Left.Vel.joint3, 'f', 6) << ';'
-              << QString::number(s.Left.Vel.Wheel, 'f', 6) << ';'
-              << QString::number(s.Left.Effort.joint1, 'f', 6) << ';'
-              << QString::number(s.Left.Effort.joint2, 'f', 6) << ';'
-              << QString::number(s.Left.Effort.joint3, 'f', 6) << ';'
-              << QString::number(s.Left.Effort.Wheel, 'f', 6) << ';'
-              << QString::number(s.Right.Pos.joint1, 'f', 6) << ';'
-              << QString::number(s.Right.Pos.joint2, 'f', 6) << ';'
-              << QString::number(s.Right.Pos.joint3, 'f', 6) << ';'
-              << QString::number(s.Right.Pos.Wheel, 'f', 6) << ';'
-              << QString::number(s.Right.Vel.joint1, 'f', 6) << ';'
-              << QString::number(s.Right.Vel.joint2, 'f', 6) << ';'
-              << QString::number(s.Right.Vel.joint3, 'f', 6) << ';'
-              << QString::number(s.Right.Vel.Wheel, 'f', 6) << ';'
-              << QString::number(s.Right.Effort.joint1, 'f', 6) << ';'
-              << QString::number(s.Right.Effort.joint2, 'f', 6) << ';'
-              << QString::number(s.Right.Effort.joint3, 'f', 6) << ';'
-              << QString::number(s.Right.Effort.Wheel, 'f', 6) << '\n';
+              << QString::number(s.Left.Real.Pos.joint1, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Pos.joint2, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Pos.joint3, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Pos.Wheel, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Vel.joint1, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Vel.joint2, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Vel.joint3, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Vel.Wheel, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Effort.joint1, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Effort.joint2, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Effort.joint3, 'f', 6) << ';'
+              << QString::number(s.Left.Real.Effort.Wheel, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Pos.joint1, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Pos.joint2, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Pos.joint3, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Pos.Wheel, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Vel.joint1, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Vel.joint2, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Vel.joint3, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Vel.Wheel, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Effort.joint1, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Effort.joint2, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Effort.joint3, 'f', 6) << ';'
+              << QString::number(s.Right.Real.Effort.Wheel, 'f', 6) << '\n';
   log_stream_.flush();
 }

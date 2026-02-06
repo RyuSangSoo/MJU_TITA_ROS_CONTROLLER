@@ -8,6 +8,8 @@ ROS2 환경에서 TiTa IMU와 Joint State를 모니터링하는 Qt 기반 UI입�
 - 모든 값을 `TitaState`에 저장
 - IMU(roll/pitch/yaw), Joint 1/2/3(Left/Right) 그래프 표시
 - Left/Right (Pos/Vel/Eff) + RPY 테이블 표시
+- Control 섹션에서 Right J1/J2/J3 목표 각도, 이동 시간, Kp/Kd(조인트별) 입력 후 PD 제어
+- `std_msgs/msg/Float64MultiArray` 500Hz 퍼블리시
 - ESC 키로 창 종료
 - CSV 로깅 (세미콜론 `;` 구분자)
 
@@ -22,10 +24,12 @@ sudo apt-get install -y qtbase5-dev
 기본값:
 - IMU: `/imu_sensor_broadcaster/imu`
 - Joint States: `/joint_states`
+- Control: `/R_effort_controller/commands`
 
 파라미터로 변경 가능:
 - `imu_topic`
 - `joint_states_topic`
+- `control_topic`
 
 ## 빌드
 ```bash
@@ -42,7 +46,8 @@ ros2 run tita_ui tita_ui_node
 ```bash
 ros2 run tita_ui tita_ui_node --ros-args \
   -p imu_topic:=/imu_sensor_broadcaster/imu \
-  -p joint_states_topic:=/joint_states
+  -p joint_states_topic:=/joint_states \
+  -p control_topic:=/R_effort_controller/commands
 ```
 
 ## 로깅
@@ -62,6 +67,14 @@ ros2 run tita_ui tita_ui_node --ros-args \
 - `joint_right_leg_2` -> Right.J2
 - `joint_right_leg_3` -> Right.J3
 - `joint_right_leg_4` -> Right.Wheel
+
+## Control 퍼블리시
+- 토픽 타입: `std_msgs/msg/Float64MultiArray`
+- 주기: 500Hz
+- 데이터 순서: `[Right.J1, Right.J2, Right.J3]` (Effort)
+- `Send` 버튼을 누르면 현재 위치에서 목표 각도로 이동하도록 PD 계산
+- `Stop` 버튼을 누르면 effort가 0으로 출력됨
+- Command 목표 각도/속도는 `Command.Pos`/`Command.Vel`에 저장되며 그래프에서 실측값과 비교 표시됨
 
 ## 참고
 - UI 업데이트는 약 30Hz로 제한되어 부드럽게 표시됩니다.
