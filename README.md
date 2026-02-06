@@ -10,6 +10,13 @@ ROS2 Qt UI for monitoring TiTa IMU and joint states with live plots.
 - Tita State table for Left/Right (Pos/Vel/Eff) + RPY values
 - ESC to close the window
 
+## Dependencies
+Qt5 is required. On Ubuntu:
+```bash
+sudo apt-get update
+sudo apt-get install -y qtbase5-dev
+```
+
 ## Topics
 Defaults:
 - IMU: `/imu_sensor_broadcaster/imu`
