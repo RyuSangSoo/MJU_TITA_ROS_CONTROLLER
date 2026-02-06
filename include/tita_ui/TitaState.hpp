@@ -40,7 +40,7 @@ typedef struct
         double kd_j3;
         std::uint64_t seq;
         std::uint64_t stop_seq;
-    }Control;
+    }ControlLeft, ControlRight;
 
 } TitaState;
 

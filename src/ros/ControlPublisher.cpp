@@ -50,61 +50,134 @@ double taskVelocity(double t, double T, double start, double end)
 void ControlPublisher::onTimer()
 {
   std_msgs::msg::Float64MultiArray msg;
-  msg.data.resize(3);
+  msg.data.resize(6);
 
-  static std::uint64_t last_seq = 0;
-  static bool active = false;
-  static double start_time = 0.0;
-  static double start_pos[3] = {};
-  static double start_vel[3] = {};
-  static double target[3] = {};
-  static double duration = 0.0;
-  static double kp[3] = {};
-  static double kd[3] = {};
-  static std::uint64_t last_stop_seq = 0;
+  static std::uint64_t last_seq_left = 0;
+  static std::uint64_t last_seq_right = 0;
+  static std::uint64_t last_stop_seq_left = 0;
+  static std::uint64_t last_stop_seq_right = 0;
+  static bool active_left = false;
+  static bool active_right = false;
+  static double start_time_left = 0.0;
+  static double start_time_right = 0.0;
+  static double start_pos_left[3] = {};
+  static double start_pos_right[3] = {};
+  static double target_left[3] = {};
+  static double target_right[3] = {};
+  static double duration_left = 0.0;
+  static double duration_right = 0.0;
+  static double kp_left[3] = {};
+  static double kd_left[3] = {};
+  static double kp_right[3] = {};
+  static double kd_right[3] = {};
 
   const double now = node_->get_clock()->now().seconds();
   {
     std::lock_guard<std::mutex> lock(tita_state_mutex);
-    if (tita_state.Control.stop_seq != last_stop_seq)
+    if (tita_state.ControlLeft.stop_seq != last_stop_seq_left)
     {
-      last_stop_seq = tita_state.Control.stop_seq;
-      active = false;
+      last_stop_seq_left = tita_state.ControlLeft.stop_seq;
+      active_left = false;
+      tita_state.Left.Command.Effort.joint1 = 0.0;
+      tita_state.Left.Command.Effort.joint2 = 0.0;
+      tita_state.Left.Command.Effort.joint3 = 0.0;
+    }
+
+    if (tita_state.ControlRight.stop_seq != last_stop_seq_right)
+    {
+      last_stop_seq_right = tita_state.ControlRight.stop_seq;
+      active_right = false;
       tita_state.Right.Command.Effort.joint1 = 0.0;
       tita_state.Right.Command.Effort.joint2 = 0.0;
       tita_state.Right.Command.Effort.joint3 = 0.0;
     }
 
-    if (tita_state.Control.seq != last_seq)
+    if (tita_state.ControlLeft.seq != last_seq_left)
     {
-      last_seq = tita_state.Control.seq;
-      active = true;
-      start_time = now;
-      start_pos[0] = tita_state.Right.Real.Pos.joint1;
-      start_pos[1] = tita_state.Right.Real.Pos.joint2;
-      start_pos[2] = tita_state.Right.Real.Pos.joint3;
-      start_vel[0] = tita_state.Right.Real.Vel.joint1;
-      start_vel[1] = tita_state.Right.Real.Vel.joint2;
-      start_vel[2] = tita_state.Right.Real.Vel.joint3;
-      target[0] = tita_state.Control.target_j1;
-      target[1] = tita_state.Control.target_j2;
-      target[2] = tita_state.Control.target_j3;
-      duration = tita_state.Control.duration_sec;
-      kp[0] = tita_state.Control.kp_j1;
-      kp[1] = tita_state.Control.kp_j2;
-      kp[2] = tita_state.Control.kp_j3;
-      kd[0] = tita_state.Control.kd_j1;
-      kd[1] = tita_state.Control.kd_j2;
-      kd[2] = tita_state.Control.kd_j3;
+      last_seq_left = tita_state.ControlLeft.seq;
+      active_left = true;
+      start_time_left = now;
+      start_pos_left[0] = tita_state.Left.Real.Pos.joint1;
+      start_pos_left[1] = tita_state.Left.Real.Pos.joint2;
+      start_pos_left[2] = tita_state.Left.Real.Pos.joint3;
+      target_left[0] = tita_state.ControlLeft.target_j1;
+      target_left[1] = tita_state.ControlLeft.target_j2;
+      target_left[2] = tita_state.ControlLeft.target_j3;
+      duration_left = tita_state.ControlLeft.duration_sec;
+      kp_left[0] = tita_state.ControlLeft.kp_j1;
+      kp_left[1] = tita_state.ControlLeft.kp_j2;
+      kp_left[2] = tita_state.ControlLeft.kp_j3;
+      kd_left[0] = tita_state.ControlLeft.kd_j1;
+      kd_left[1] = tita_state.ControlLeft.kd_j2;
+      kd_left[2] = tita_state.ControlLeft.kd_j3;
     }
 
-    if (active)
+    if (tita_state.ControlRight.seq != last_seq_right)
     {
-      const double t = now - start_time;
+      last_seq_right = tita_state.ControlRight.seq;
+      active_right = true;
+      start_time_right = now;
+      start_pos_right[0] = tita_state.Right.Real.Pos.joint1;
+      start_pos_right[1] = tita_state.Right.Real.Pos.joint2;
+      start_pos_right[2] = tita_state.Right.Real.Pos.joint3;
+      target_right[0] = tita_state.ControlRight.target_j1;
+      target_right[1] = tita_state.ControlRight.target_j2;
+      target_right[2] = tita_state.ControlRight.target_j3;
+      duration_right = tita_state.ControlRight.duration_sec;
+      kp_right[0] = tita_state.ControlRight.kp_j1;
+      kp_right[1] = tita_state.ControlRight.kp_j2;
+      kp_right[2] = tita_state.ControlRight.kp_j3;
+      kd_right[0] = tita_state.ControlRight.kd_j1;
+      kd_right[1] = tita_state.ControlRight.kd_j2;
+      kd_right[2] = tita_state.ControlRight.kd_j3;
+    }
+
+    if (active_left)
+    {
+      const double t = now - start_time_left;
       for (int i = 0; i < 3; ++i)
       {
-        const double th_ref = taskPosition(t, duration, start_pos[i], target[i]);
-        const double dth_ref = taskVelocity(t, duration, start_pos[i], target[i]);
+        const double th_ref = taskPosition(t, duration_left, start_pos_left[i], target_left[i]);
+        const double dth_ref = taskVelocity(t, duration_left, start_pos_left[i], target_left[i]);
+        if (i == 0)
+        {
+          tita_state.Left.Command.Pos.joint1 = th_ref;
+          tita_state.Left.Command.Vel.joint1 = dth_ref;
+        }
+        if (i == 1)
+        {
+          tita_state.Left.Command.Pos.joint2 = th_ref;
+          tita_state.Left.Command.Vel.joint2 = dth_ref;
+        }
+        if (i == 2)
+        {
+          tita_state.Left.Command.Pos.joint3 = th_ref;
+          tita_state.Left.Command.Vel.joint3 = dth_ref;
+        }
+        const double th = (i == 0) ? tita_state.Left.Real.Pos.joint1
+                                   : (i == 1) ? tita_state.Left.Real.Pos.joint2
+                                              : tita_state.Left.Real.Pos.joint3;
+        const double dth = (i == 0) ? tita_state.Left.Real.Vel.joint1
+                                    : (i == 1) ? tita_state.Left.Real.Vel.joint2
+                                               : tita_state.Left.Real.Vel.joint3;
+        const double effort = pdCalculate(kp_left[i], kd_left[i], th_ref, dth_ref, th, dth);
+        if (i == 0) tita_state.Left.Command.Effort.joint1 = effort;
+        if (i == 1) tita_state.Left.Command.Effort.joint2 = effort;
+        if (i == 2) tita_state.Left.Command.Effort.joint3 = effort;
+      }
+      if (t > duration_left)
+      {
+        active_left = false;
+      }
+    }
+
+    if (active_right)
+    {
+      const double t = now - start_time_right;
+      for (int i = 0; i < 3; ++i)
+      {
+        const double th_ref = taskPosition(t, duration_right, start_pos_right[i], target_right[i]);
+        const double dth_ref = taskVelocity(t, duration_right, start_pos_right[i], target_right[i]);
         if (i == 0)
         {
           tita_state.Right.Command.Pos.joint1 = th_ref;
@@ -126,20 +199,23 @@ void ControlPublisher::onTimer()
         const double dth = (i == 0) ? tita_state.Right.Real.Vel.joint1
                                     : (i == 1) ? tita_state.Right.Real.Vel.joint2
                                                : tita_state.Right.Real.Vel.joint3;
-        const double effort = pdCalculate(kp[i], kd[i], th_ref, dth_ref, th, dth);
+        const double effort = pdCalculate(kp_right[i], kd_right[i], th_ref, dth_ref, th, dth);
         if (i == 0) tita_state.Right.Command.Effort.joint1 = effort;
         if (i == 1) tita_state.Right.Command.Effort.joint2 = effort;
         if (i == 2) tita_state.Right.Command.Effort.joint3 = effort;
       }
-      if (t > duration)
+      if (t > duration_right)
       {
-        active = false;
+        active_right = false;
       }
     }
 
-    msg.data[0] = tita_state.Right.Command.Effort.joint1;
-    msg.data[1] = tita_state.Right.Command.Effort.joint2;
-    msg.data[2] = tita_state.Right.Command.Effort.joint3;
+    msg.data[0] = tita_state.Left.Command.Effort.joint1;
+    msg.data[1] = tita_state.Left.Command.Effort.joint2;
+    msg.data[2] = tita_state.Left.Command.Effort.joint3;
+    msg.data[3] = tita_state.Right.Command.Effort.joint1;
+    msg.data[4] = tita_state.Right.Command.Effort.joint2;
+    msg.data[5] = tita_state.Right.Command.Effort.joint3;
   }
   publisher_->publish(msg);
 }

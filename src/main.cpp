@@ -21,7 +21,7 @@ int main(int argc, char **argv)
   auto node = std::make_shared<rclcpp::Node>("tita_ui");
   node->declare_parameter<std::string>("imu_topic", "/imu_sensor_broadcaster/imu");
   node->declare_parameter<std::string>("joint_states_topic", "/joint_states");
-  node->declare_parameter<std::string>("control_topic", "/R_effort_controller/commands");
+  node->declare_parameter<std::string>("control_topic", "/tita_hw/effort_controller/command");
 
   const std::string imu_topic = node->get_parameter("imu_topic").as_string();
   const std::string joint_topic = node->get_parameter("joint_states_topic").as_string();

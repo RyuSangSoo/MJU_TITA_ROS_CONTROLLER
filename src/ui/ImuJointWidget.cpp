@@ -157,67 +157,156 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   tita_layout->addWidget(new QLabel("Right", tita_group));
   tita_layout->addWidget(tita_right_table_);
 
-  auto *control_group = new QGroupBox("Control (Right Effort PD)", bottom_row);
+  auto *control_group = new QGroupBox("Control (Left/Right PD)", bottom_row);
   auto *control_layout = new QVBoxLayout(control_group);
   control_layout->setSpacing(10);
 
-  auto make_spin = [&](const QString &label, double min, double max, double step, int decimals)
+  struct ControlRow
   {
-    auto *row = new QWidget(control_group);
-    auto *row_layout = new QHBoxLayout(row);
-    row_layout->setContentsMargins(0, 0, 0, 0);
-    row_layout->setSpacing(8);
-    auto *name = new QLabel(label, row);
-    auto *spin = new QDoubleSpinBox(row);
-    spin->setRange(min, max);
-    spin->setDecimals(decimals);
-    spin->setSingleStep(step);
-    spin->setMinimumWidth(140);
-    row_layout->addWidget(name);
-    row_layout->addWidget(spin, 1);
-    control_layout->addWidget(row);
-    return spin;
+    QWidget *row{nullptr};
+    QDoubleSpinBox *spin{nullptr};
   };
 
-  target_j1_ = make_spin("Target J1 (rad)", -6.283, 6.283, 0.01, 4);
-  target_j2_ = make_spin("Target J2 (rad)", -6.283, 6.283, 0.01, 4);
-  target_j3_ = make_spin("Target J3 (rad)", -6.283, 6.283, 0.01, 4);
-  duration_sec_ = make_spin("Move Time (s)", 0.01, 30.0, 0.1, 2);
-  kp_j1_ = make_spin("Kp J1", 0.0, 1000.0, 0.1, 3);
-  kp_j2_ = make_spin("Kp J2", 0.0, 1000.0, 0.1, 3);
-  kp_j3_ = make_spin("Kp J3", 0.0, 1000.0, 0.1, 3);
-  kd_j1_ = make_spin("Kd J1", 0.0, 1000.0, 0.1, 3);
-  kd_j2_ = make_spin("Kd J2", 0.0, 1000.0, 0.1, 3);
-  kd_j3_ = make_spin("Kd J3", 0.0, 1000.0, 0.1, 3);
-  duration_sec_->setValue(2.0);
-  kp_j1_->setValue(10.0);
-  kp_j2_->setValue(10.0);
-  kp_j3_->setValue(10.0);
-  kd_j1_->setValue(0.5);
-  kd_j2_->setValue(0.5);
-  kd_j3_->setValue(0.5);
+  auto make_spin = [&](QWidget *parent, const QString &label, double min, double max, double step, int decimals)
+  {
+    ControlRow out;
+    out.row = new QWidget(parent);
+    auto *row_layout = new QHBoxLayout(out.row);
+    row_layout->setContentsMargins(0, 0, 0, 0);
+    row_layout->setSpacing(8);
+    auto *name = new QLabel(label, out.row);
+    name->setMinimumWidth(120);
+    out.spin = new QDoubleSpinBox(out.row);
+    out.spin->setRange(min, max);
+    out.spin->setDecimals(decimals);
+    out.spin->setSingleStep(step);
+    out.spin->setMinimumWidth(120);
+    row_layout->addWidget(name);
+    row_layout->addWidget(out.spin, 1);
+    return out;
+  };
+
+  auto *left_panel = new QWidget(control_group);
+  auto *left_layout = new QVBoxLayout(left_panel);
+  left_layout->setSpacing(8);
+  auto *left_title = new QLabel("Left", left_panel);
+  left_title->setStyleSheet("font-weight: 600;");
+  left_layout->addWidget(left_title);
+
+  auto *right_panel = new QWidget(control_group);
+  auto *right_layout = new QVBoxLayout(right_panel);
+  right_layout->setSpacing(8);
+  auto *right_title = new QLabel("Right", right_panel);
+  right_title->setStyleSheet("font-weight: 600;");
+  right_layout->addWidget(right_title);
+
+  auto left_target_j1 = make_spin(left_panel, "Target J1 (rad)", -6.283, 6.283, 0.01, 4);
+  auto left_target_j2 = make_spin(left_panel, "Target J2 (rad)", -6.283, 6.283, 0.01, 4);
+  auto left_target_j3 = make_spin(left_panel, "Target J3 (rad)", -6.283, 6.283, 0.01, 4);
+  auto left_duration = make_spin(left_panel, "Move Time (s)", 0.01, 30.0, 0.1, 2);
+  auto left_kp_j1 = make_spin(left_panel, "Kp J1", 0.0, 1000.0, 0.1, 3);
+  auto left_kp_j2 = make_spin(left_panel, "Kp J2", 0.0, 1000.0, 0.1, 3);
+  auto left_kp_j3 = make_spin(left_panel, "Kp J3", 0.0, 1000.0, 0.1, 3);
+  auto left_kd_j1 = make_spin(left_panel, "Kd J1", 0.0, 1000.0, 0.1, 3);
+  auto left_kd_j2 = make_spin(left_panel, "Kd J2", 0.0, 1000.0, 0.1, 3);
+  auto left_kd_j3 = make_spin(left_panel, "Kd J3", 0.0, 1000.0, 0.1, 3);
+
+  left_duration.spin->setValue(2.0);
+  left_kp_j1.spin->setValue(10.0);
+  left_kp_j2.spin->setValue(10.0);
+  left_kp_j3.spin->setValue(10.0);
+  left_kd_j1.spin->setValue(0.5);
+  left_kd_j2.spin->setValue(0.5);
+  left_kd_j3.spin->setValue(0.5);
+
+  left_layout->addWidget(left_target_j1.row);
+  left_layout->addWidget(left_target_j2.row);
+  left_layout->addWidget(left_target_j3.row);
+  left_layout->addWidget(left_duration.row);
+  left_layout->addWidget(left_kp_j1.row);
+  left_layout->addWidget(left_kp_j2.row);
+  left_layout->addWidget(left_kp_j3.row);
+  left_layout->addWidget(left_kd_j1.row);
+  left_layout->addWidget(left_kd_j2.row);
+  left_layout->addWidget(left_kd_j3.row);
+
+  auto right_target_j1 = make_spin(right_panel, "Target J1 (rad)", -6.283, 6.283, 0.01, 4);
+  auto right_target_j2 = make_spin(right_panel, "Target J2 (rad)", -6.283, 6.283, 0.01, 4);
+  auto right_target_j3 = make_spin(right_panel, "Target J3 (rad)", -6.283, 6.283, 0.01, 4);
+  auto right_duration = make_spin(right_panel, "Move Time (s)", 0.01, 30.0, 0.1, 2);
+  auto right_kp_j1 = make_spin(right_panel, "Kp J1", 0.0, 1000.0, 0.1, 3);
+  auto right_kp_j2 = make_spin(right_panel, "Kp J2", 0.0, 1000.0, 0.1, 3);
+  auto right_kp_j3 = make_spin(right_panel, "Kp J3", 0.0, 1000.0, 0.1, 3);
+  auto right_kd_j1 = make_spin(right_panel, "Kd J1", 0.0, 1000.0, 0.1, 3);
+  auto right_kd_j2 = make_spin(right_panel, "Kd J2", 0.0, 1000.0, 0.1, 3);
+  auto right_kd_j3 = make_spin(right_panel, "Kd J3", 0.0, 1000.0, 0.1, 3);
+
+  right_duration.spin->setValue(2.0);
+  right_kp_j1.spin->setValue(10.0);
+  right_kp_j2.spin->setValue(10.0);
+  right_kp_j3.spin->setValue(10.0);
+  right_kd_j1.spin->setValue(0.5);
+  right_kd_j2.spin->setValue(0.5);
+  right_kd_j3.spin->setValue(0.5);
+
+  right_layout->addWidget(right_target_j1.row);
+  right_layout->addWidget(right_target_j2.row);
+  right_layout->addWidget(right_target_j3.row);
+  right_layout->addWidget(right_duration.row);
+  right_layout->addWidget(right_kp_j1.row);
+  right_layout->addWidget(right_kp_j2.row);
+  right_layout->addWidget(right_kp_j3.row);
+  right_layout->addWidget(right_kd_j1.row);
+  right_layout->addWidget(right_kd_j2.row);
+  right_layout->addWidget(right_kd_j3.row);
 
   send_button_ = new QPushButton("Send", control_group);
   stop_button_ = new QPushButton("Stop", control_group);
-  control_layout->addWidget(send_button_);
-  control_layout->addWidget(stop_button_);
-  control_layout->addStretch(1);
+  auto *button_row = new QWidget(control_group);
+  auto *button_layout = new QHBoxLayout(button_row);
+  button_layout->setContentsMargins(0, 0, 0, 0);
+  button_layout->setSpacing(12);
+  button_layout->addWidget(send_button_, 1);
+  button_layout->addWidget(stop_button_, 1);
+
+  auto *panels_row = new QWidget(control_group);
+  auto *panels_layout = new QHBoxLayout(panels_row);
+  panels_layout->setContentsMargins(0, 0, 0, 0);
+  panels_layout->setSpacing(12);
+  panels_layout->addWidget(left_panel, 1);
+  panels_layout->addWidget(right_panel, 1);
+
+  control_layout->addWidget(panels_row);
+  control_layout->addWidget(button_row);
 
   connect(send_button_, &QPushButton::clicked, this, [=]()
   {
     std::lock_guard<std::mutex> lock(tita_state_mutex);
-    tita_state.Control.target_j1 = target_j1_->value();
-    tita_state.Control.target_j2 = target_j2_->value();
-    tita_state.Control.target_j3 = target_j3_->value();
-    tita_state.Control.duration_sec = duration_sec_->value();
-    tita_state.Control.kp_j1 = kp_j1_->value();
-    tita_state.Control.kp_j2 = kp_j2_->value();
-    tita_state.Control.kp_j3 = kp_j3_->value();
-    tita_state.Control.kd_j1 = kd_j1_->value();
-    tita_state.Control.kd_j2 = kd_j2_->value();
-    tita_state.Control.kd_j3 = kd_j3_->value();
-    tita_state.Control.seq += 1;
+    tita_state.ControlLeft.target_j1 = left_target_j1.spin->value();
+    tita_state.ControlLeft.target_j2 = left_target_j2.spin->value();
+    tita_state.ControlLeft.target_j3 = left_target_j3.spin->value();
+    tita_state.ControlLeft.duration_sec = left_duration.spin->value();
+    tita_state.ControlLeft.kp_j1 = left_kp_j1.spin->value();
+    tita_state.ControlLeft.kp_j2 = left_kp_j2.spin->value();
+    tita_state.ControlLeft.kp_j3 = left_kp_j3.spin->value();
+    tita_state.ControlLeft.kd_j1 = left_kd_j1.spin->value();
+    tita_state.ControlLeft.kd_j2 = left_kd_j2.spin->value();
+    tita_state.ControlLeft.kd_j3 = left_kd_j3.spin->value();
+    tita_state.ControlLeft.seq += 1;
+
+    tita_state.ControlRight.target_j1 = right_target_j1.spin->value();
+    tita_state.ControlRight.target_j2 = right_target_j2.spin->value();
+    tita_state.ControlRight.target_j3 = right_target_j3.spin->value();
+    tita_state.ControlRight.duration_sec = right_duration.spin->value();
+    tita_state.ControlRight.kp_j1 = right_kp_j1.spin->value();
+    tita_state.ControlRight.kp_j2 = right_kp_j2.spin->value();
+    tita_state.ControlRight.kp_j3 = right_kp_j3.spin->value();
+    tita_state.ControlRight.kd_j1 = right_kd_j1.spin->value();
+    tita_state.ControlRight.kd_j2 = right_kd_j2.spin->value();
+    tita_state.ControlRight.kd_j3 = right_kd_j3.spin->value();
+    tita_state.ControlRight.seq += 1;
   });
+
   connect(send_button_, &QPushButton::clicked, this, [=]()
   {
     for (auto &binding : plots_)
@@ -232,10 +321,14 @@ ImuJointWidget::ImuJointWidget(QWidget *parent)
   connect(stop_button_, &QPushButton::clicked, this, [=]()
   {
     std::lock_guard<std::mutex> lock(tita_state_mutex);
+    tita_state.Left.Command.Effort.joint1 = 0.0;
+    tita_state.Left.Command.Effort.joint2 = 0.0;
+    tita_state.Left.Command.Effort.joint3 = 0.0;
     tita_state.Right.Command.Effort.joint1 = 0.0;
     tita_state.Right.Command.Effort.joint2 = 0.0;
     tita_state.Right.Command.Effort.joint3 = 0.0;
-    tita_state.Control.stop_seq += 1;
+    tita_state.ControlLeft.stop_seq += 1;
+    tita_state.ControlRight.stop_seq += 1;
   });
 
   bottom_layout->addWidget(tita_group, 1);
