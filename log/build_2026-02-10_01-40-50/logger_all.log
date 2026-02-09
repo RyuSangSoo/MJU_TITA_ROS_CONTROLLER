@@ -1,0 +1,78 @@
+[0.646s] colcon DEBUG Command line arguments: ['/usr/bin/colcon', 'build', '--packages-select', 'tita_ui']
+[0.646s] colcon DEBUG Parsed command line arguments: Namespace(allow_overriding=[], ament_cmake_args=None, base_paths=['.'], build_base='build', catkin_cmake_args=None, catkin_skip_building_tests=False, cmake_args=None, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, cmake_target=None, cmake_target_skip_unavailable=False, continue_on_error=False, event_handlers=None, executor='parallel', ignore_user_meta=False, install_base='install', log_base=None, log_level=None, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7fc53617a3d0>>, merge_install=False, metas=['./colcon.meta'], mixin=None, mixin_files=None, mixin_verb=('build',), packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_end=None, packages_ignore=None, packages_ignore_regex=None, packages_select=['tita_ui'], packages_select_build_failed=False, packages_select_by_dep=None, packages_select_regex=None, packages_select_test_failures=False, packages_skip=None, packages_skip_build_finished=False, packages_skip_by_dep=None, packages_skip_regex=None, packages_skip_test_passed=False, packages_skip_up_to=None, packages_start=None, packages_up_to=None, packages_up_to_regex=None, parallel_workers=7, paths=None, symlink_install=False, test_result_base=None, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7fc53617a3d0>, verb_name='build', verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x7fc53615da30>)
+[1.142s] colcon.colcon_core.package_discovery Level 1 discover_packages(colcon_meta) check parameters
+[1.142s] colcon.colcon_core.package_discovery Level 1 discover_packages(recursive) check parameters
+[1.142s] colcon.colcon_core.package_discovery Level 1 discover_packages(ignore) check parameters
+[1.142s] colcon.colcon_core.package_discovery Level 1 discover_packages(path) check parameters
+[1.142s] colcon.colcon_core.package_discovery Level 1 discover_packages(colcon_meta) discover
+[1.143s] colcon.colcon_core.package_discovery Level 1 discover_packages(recursive) discover
+[1.143s] colcon.colcon_core.package_discovery INFO Crawling recursively for packages in '/home/drcl-rss/Documents/tita_ws/src/tita_ui'
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extensions ['ignore', 'ignore_ament_install']
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extension 'ignore'
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extension 'ignore_ament_install'
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extensions ['colcon_pkg']
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extension 'colcon_pkg'
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extensions ['colcon_meta']
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extension 'colcon_meta'
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extensions ['ros']
+[1.143s] colcon.colcon_core.package_identification Level 1 _identify(.) by extension 'ros'
+[1.170s] colcon.colcon_core.package_identification DEBUG Package '.' with type 'ros.ament_cmake' and name 'tita_ui'
+[1.170s] colcon.colcon_core.package_discovery Level 1 discover_packages(recursive) using defaults
+[1.170s] colcon.colcon_core.package_discovery Level 1 discover_packages(ignore) discover
+[1.170s] colcon.colcon_core.package_discovery Level 1 discover_packages(ignore) using defaults
+[1.170s] colcon.colcon_core.package_discovery Level 1 discover_packages(path) discover
+[1.170s] colcon.colcon_core.package_discovery Level 1 discover_packages(path) using defaults
+[1.197s] colcon.colcon_core.package_discovery Level 1 discover_packages(prefix_path) check parameters
+[1.197s] colcon.colcon_core.package_discovery Level 1 discover_packages(prefix_path) discover
+[1.199s] colcon.colcon_core.package_discovery Level 1 discover_packages(prefix_path) using defaults
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'cmake_args' from command line to 'None'
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'cmake_target' from command line to 'None'
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'cmake_clean_cache' from command line to 'False'
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'cmake_clean_first' from command line to 'False'
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'cmake_force_configure' from command line to 'False'
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'ament_cmake_args' from command line to 'None'
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'catkin_cmake_args' from command line to 'None'
+[1.201s] colcon.colcon_core.verb Level 5 set package 'tita_ui' build argument 'catkin_skip_building_tests' from command line to 'False'
+[1.201s] colcon.colcon_core.verb DEBUG Building package 'tita_ui' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/drcl-rss/Documents/tita_ws/src/tita_ui/build/tita_ui', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui', 'merge_install': False, 'path': '/home/drcl-rss/Documents/tita_ws/src/tita_ui', 'symlink_install': False, 'test_result_base': None}
+[1.202s] colcon.colcon_core.executor INFO Executing jobs using 'parallel' executor
+[1.203s] colcon.colcon_parallel_executor.executor.parallel DEBUG run_until_complete
+[1.204s] colcon.colcon_ros.task.ament_cmake.build INFO Building ROS package in '/home/drcl-rss/Documents/tita_ws/src/tita_ui' with build type 'ament_cmake'
+[1.204s] colcon.colcon_cmake.task.cmake.build INFO Building CMake package in '/home/drcl-rss/Documents/tita_ws/src/tita_ui'
+[1.208s] colcon.colcon_core.plugin_system INFO Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[1.209s] colcon.colcon_core.shell INFO Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.209s] colcon.colcon_core.shell DEBUG Skip shell extension 'dsv' for command environment
+[1.220s] colcon.colcon_core.event_handler.log_command DEBUG Invoking command in '/home/drcl-rss/Documents/tita_ws/src/tita_ui/build/tita_ui': /home/drcl-rss/cmake-install/bin/cmake /home/drcl-rss/Documents/tita_ws/src/tita_ui -DCMAKE_INSTALL_PREFIX=/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui
+[1.833s] colcon.colcon_core.event_handler.log_command DEBUG Invoked command in '/home/drcl-rss/Documents/tita_ws/src/tita_ui/build/tita_ui' returned '1': /home/drcl-rss/cmake-install/bin/cmake /home/drcl-rss/Documents/tita_ws/src/tita_ui -DCMAKE_INSTALL_PREFIX=/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui
+[1.843s] colcon.colcon_core.environment Level 1 create_environment_scripts_only(tita_ui)
+[1.848s] colcon.colcon_core.environment Level 1 checking '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui' for CMake module files
+[1.848s] colcon.colcon_core.environment Level 1 checking '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui' for CMake config files
+[1.849s] colcon.colcon_core.environment Level 1 checking '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/bin'
+[1.849s] colcon.colcon_core.environment Level 1 checking '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/lib/pkgconfig/tita_ui.pc'
+[1.852s] colcon.colcon_core.environment Level 1 checking '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/lib/python3.8/site-packages'
+[1.852s] colcon.colcon_core.environment Level 1 checking '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/bin'
+[1.853s] colcon.colcon_core.shell INFO Creating package script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/share/tita_ui/package.ps1'
+[1.855s] colcon.colcon_core.shell INFO Creating package descriptor '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/share/tita_ui/package.dsv'
+[1.855s] colcon.colcon_core.shell INFO Creating package script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/share/tita_ui/package.sh'
+[1.857s] colcon.colcon_core.shell INFO Creating package script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/share/tita_ui/package.bash'
+[1.858s] colcon.colcon_core.shell INFO Creating package script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/share/tita_ui/package.zsh'
+[1.859s] colcon.colcon_core.environment Level 1 create_file_with_runtime_dependencies(/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui/share/colcon-core/packages/tita_ui)
+[1.870s] colcon.colcon_parallel_executor.executor.parallel DEBUG closing loop
+[1.870s] colcon.colcon_parallel_executor.executor.parallel DEBUG loop closed
+[1.870s] colcon.colcon_parallel_executor.executor.parallel DEBUG run_until_complete finished with '1'
+[1.870s] colcon.colcon_core.event_reactor DEBUG joining thread
+[1.878s] colcon.colcon_core.plugin_system INFO Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[1.878s] colcon.colcon_core.plugin_system INFO Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[1.878s] colcon.colcon_notification.desktop_notification INFO Sending desktop notification using 'notify2'
+[1.878s] colcon.colcon_notification.desktop_notification.notify2 DEBUG Failed to initialize notify2: org.freedesktop.DBus.Error.AccessDenied: Failed to connect to socket /run/user/1000/bus: Operation not permitted
+[1.878s] colcon.colcon_core.event_reactor DEBUG joined thread
+[1.879s] colcon.colcon_core.shell INFO Creating prefix script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/local_setup.ps1'
+[1.880s] colcon.colcon_core.shell INFO Creating prefix util module '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/_local_setup_util_ps1.py'
+[1.884s] colcon.colcon_core.shell INFO Creating prefix chain script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/setup.ps1'
+[1.885s] colcon.colcon_core.shell INFO Creating prefix script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/local_setup.sh'
+[1.886s] colcon.colcon_core.shell INFO Creating prefix util module '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/_local_setup_util_sh.py'
+[1.887s] colcon.colcon_core.shell INFO Creating prefix chain script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/setup.sh'
+[1.889s] colcon.colcon_core.shell INFO Creating prefix script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/local_setup.bash'
+[1.890s] colcon.colcon_core.shell INFO Creating prefix chain script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/setup.bash'
+[1.891s] colcon.colcon_core.shell INFO Creating prefix script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/local_setup.zsh'
+[1.892s] colcon.colcon_core.shell INFO Creating prefix chain script '/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/setup.zsh'

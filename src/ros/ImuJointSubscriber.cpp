@@ -31,6 +31,10 @@ ImuJointSubscriber::ImuJointSubscriber(
       const double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
       tita_state.yaw = std::atan2(siny_cosp, cosy_cosp);
 
+      tita_state.angular_velocity_x = msg->angular_velocity.x;
+      tita_state.angular_velocity_y = msg->angular_velocity.y;
+      tita_state.angular_velocity_z = msg->angular_velocity.z;
+
       emit titaStateUpdated(tita_state);
     });
 

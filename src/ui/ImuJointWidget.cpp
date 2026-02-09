@@ -262,7 +262,7 @@ void ImuJointWidget::toggleLogging()
     }
 
     log_stream_.setDevice(&log_file_);
-    log_stream_ << "time_sec;roll;pitch;yaw;"
+    log_stream_ << "time_sec;roll;pitch;yaw;angular_velocity_x;angular_velocity_y;angular_velocity_z;"
                 << "left_pos_j1;left_pos_j2;left_pos_j3;left_pos_wheel;"
                 << "left_vel_j1;left_vel_j2;left_vel_j3;left_vel_wheel;"
                 << "left_eff_j1;left_eff_j2;left_eff_j3;left_eff_wheel;"
@@ -323,6 +323,9 @@ void ImuJointWidget::logSample()
               << QString::number(s.roll, 'f', 6) << ';'
               << QString::number(s.pitch, 'f', 6) << ';'
               << QString::number(s.yaw, 'f', 6) << ';'
+              << QString::number(s.angular_velocity_x, 'f', 6) << ';'
+              << QString::number(s.angular_velocity_y, 'f', 6) << ';'
+              << QString::number(s.angular_velocity_z, 'f', 6) << ';'
               << QString::number(s.Left.Pos.joint1, 'f', 6) << ';'
               << QString::number(s.Left.Pos.joint2, 'f', 6) << ';'
               << QString::number(s.Left.Pos.joint3, 'f', 6) << ';'

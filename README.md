@@ -48,6 +48,7 @@ ros2 run tita_ui tita_ui_node --ros-args \
 ## 로깅
 - `R` 키 또는 **Start Logging** 버튼으로 시작/중지 토글
 - `;`(세미콜론) 구분 CSV
+- IMU 각속도(`angular_velocity_x/y/z`) 포함
 - 기본 저장 위치: 실행 경로의 `data/`
 - 쓰기 불가 시: `~/tita_logs/`로 자동 저장
 - UI에 실제 저장 경로 표시

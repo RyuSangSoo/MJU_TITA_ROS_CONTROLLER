@@ -18,6 +18,9 @@ typedef struct
     double roll;
     double pitch;
     double yaw;
+    double angular_velocity_x;
+    double angular_velocity_y;
+    double angular_velocity_z;
 
 } TitaState;
 

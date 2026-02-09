@@ -1,0 +1,2 @@
+Invoking command in '/home/drcl-rss/Documents/tita_ws/src/tita_ui/build/tita_ui': /home/drcl-rss/cmake-install/bin/cmake /home/drcl-rss/Documents/tita_ws/src/tita_ui -DCMAKE_INSTALL_PREFIX=/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui
+Invoked command in '/home/drcl-rss/Documents/tita_ws/src/tita_ui/build/tita_ui' returned '1': /home/drcl-rss/cmake-install/bin/cmake /home/drcl-rss/Documents/tita_ws/src/tita_ui -DCMAKE_INSTALL_PREFIX=/home/drcl-rss/Documents/tita_ws/src/tita_ui/install/tita_ui
